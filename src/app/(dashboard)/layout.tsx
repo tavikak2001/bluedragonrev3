@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { Loader2 } from 'lucide-react';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
@@ -19,9 +20,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-accent rounded-2xl rotate-3 shadow-lg"></div>
-          <p className="text-primary font-medium">กำลังตรวจสอบสิทธิ์...</p>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-accent" />
+          <p className="text-primary font-medium animate-pulse">กำลังตรวจสอบสิทธิ์...</p>
         </div>
       </div>
     );

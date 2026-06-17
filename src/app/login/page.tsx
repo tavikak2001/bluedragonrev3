@@ -1,8 +1,9 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
@@ -14,11 +15,18 @@ import { LogIn, UserPlus, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user, loading: authLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +41,10 @@ export default function LoginPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: "destructive",
-        title: "ข้อผิดพลาด",
+        title: "เข้าสู่ระบบไม่สำเร็จ",
         description: "อีเมลหรือรหัสผ่านไม่ถูกต้อง โปรดลองอีกครั้ง",
       });
     } finally {
@@ -43,22 +52,24 @@ export default function LoginPage() {
     }
   };
 
+  if (authLoading) return null;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sarabun">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center font-bold text-white shadow-xl rotate-3 mx-auto mb-4">
             BD
           </div>
           <h1 className="text-3xl font-bold text-primary">Blue Dragon</h1>
-          <p className="text-muted-foreground">Management System</p>
+          <p className="text-muted-foreground">ระบบบริหารจัดการพนักงาน</p>
         </div>
 
         <Card className="border-none shadow-2xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">เข้าสู่ระบบ</CardTitle>
             <CardDescription className="text-center">
-              กรอกข้อมูลเพื่อเข้าใช้งานระบบบริหารจัดการ
+              กรอกข้อมูลเพื่อเข้าใช้งานระบบ
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
@@ -81,21 +92,18 @@ export default function LoginPage() {
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   required 
                 />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full bg-accent h-12 text-lg shadow-lg" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                  <>
-                    <LogIn className="w-5 h-5 mr-2" />
-                    เข้าสู่ระบบ
-                  </>
-                )}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
+                เข้าสู่ระบบ
               </Button>
               <div className="text-center w-full">
-                <p className="text-sm text-muted-foreground mb-2">ยังไม่มีบัญชีผู้ใช้?</p>
+                <p className="text-sm text-muted-foreground mb-3">ยังไม่มีบัญชีผู้ใช้?</p>
                 <Link href="/register" className="w-full">
                   <Button variant="outline" className="w-full border-accent text-accent hover:bg-accent/5">
                     <UserPlus className="w-4 h-4 mr-2" />
@@ -108,7 +116,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          &copy; 2024 Blue Dragon Construction Co., Ltd. All rights reserved.
+          &copy; 2024 Blue Dragon Construction Co., Ltd.
         </p>
       </div>
     </div>

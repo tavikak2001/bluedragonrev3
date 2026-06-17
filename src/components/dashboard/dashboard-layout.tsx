@@ -1,9 +1,11 @@
 
-"use client";
+'use client';
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
+import { useAuth } from "@/firebase";
 import {
   LayoutDashboard,
   Users,
@@ -29,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { name: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
@@ -41,10 +44,27 @@ const navItems = [
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+  const { toast } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      toast({
+        title: "ออกจากระบบแล้ว",
+        description: "ขอบคุณที่ใช้งานระบบ Blue Dragon",
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout error", error);
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden font-sarabun">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -88,10 +108,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="p-4 mt-auto border-t border-white/10">
           <Button
             variant="ghost"
+            onClick={handleLogout}
             className="w-full justify-start gap-3 text-white/70 hover:text-white hover:bg-white/10"
           >
             <LogOut className="w-5 h-5" />
-            {isSidebarOpen && <span className="text-sm">ออกจากระบบ</span>}
+            {isSidebarOpen && <span className="text-sm font-medium">ออกจากระบบ</span>}
           </Button>
         </div>
       </aside>
@@ -113,7 +134,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="ค้นหา..."
+                placeholder="ค้นหาข้อมูลในระบบ..."
                 className="pl-8 bg-muted/50 border-none focus-visible:ring-accent"
               />
             </div>
@@ -144,7 +165,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuItem>โปรไฟล์</DropdownMenuItem>
                 <DropdownMenuItem>ตั้งค่าบริษัท</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">ออกจากระบบ</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive font-bold" onClick={handleLogout}>ออกจากระบบ</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

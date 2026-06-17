@@ -1,8 +1,9 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
@@ -14,12 +15,19 @@ import { UserPlus, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const auth = useAuth();
+  const { user, loading: authLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +36,7 @@ export default function RegisterPage() {
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
-        title: "ข้อผิดพลาด",
+        title: "สมัครไม่สำเร็จ",
         description: "รหัสผ่านไม่ตรงกัน โปรดตรวจสอบอีกครั้ง",
       });
       return;
@@ -39,11 +47,12 @@ export default function RegisterPage() {
       await createUserWithEmailAndPassword(auth, email, password);
       toast({
         title: "สมัครสมาชิกสำเร็จ",
-        description: "ยินดีต้อนรับ! บัญชีของคุณถูกสร้างเรียบร้อยแล้ว",
+        description: "ยินดีต้อนรับสู่ครอบครัว Blue Dragon",
       });
       router.push('/dashboard');
     } catch (error: any) {
-      let errorMessage = "เกิดข้อผิดพลาดในการลงทะเบียน";
+      console.error(error);
+      let errorMessage = "เกิดข้อผิดพลาดในการสมัครสมาชิก";
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = "อีเมลนี้ถูกใช้งานแล้ว";
       } else if (error.code === 'auth/weak-password') {
@@ -52,13 +61,15 @@ export default function RegisterPage() {
       
       toast({
         variant: "destructive",
-        title: "ข้อผิดพลาด",
+        title: "สมัครไม่สำเร็จ",
         description: errorMessage,
       });
     } finally {
       setLoading(false);
     }
   };
+
+  if (authLoading) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sarabun">
@@ -67,15 +78,15 @@ export default function RegisterPage() {
           <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center font-bold text-white shadow-xl rotate-3 mx-auto mb-4">
             BD
           </div>
-          <h1 className="text-3xl font-bold text-primary tracking-tight">Blue Dragon</h1>
-          <p className="text-muted-foreground">ลงทะเบียนสมาชิกใหม่</p>
+          <h1 className="text-3xl font-bold text-primary">Blue Dragon</h1>
+          <p className="text-muted-foreground">ลงทะเบียนเข้าใช้งานระบบ</p>
         </div>
 
         <Card className="border-none shadow-2xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">สมัครสมาชิก</CardTitle>
             <CardDescription className="text-center">
-              กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีผู้ใช้งานใหม่
+              สร้างบัญชีใหม่เพื่อจัดการข้อมูลบริษัทของคุณ
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
@@ -103,25 +114,21 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</Label>
+                <Label htmlFor="confirmPassword">ยืนยันรหัสผ่านอีกครั้ง</Label>
                 <Input 
                   id="confirmPassword" 
                   type="password" 
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="กรอกรหัสผ่านอีกครั้ง"
+                  placeholder="กรอกรหัสผ่านเดิม"
                   required 
                 />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full bg-accent h-12 text-lg shadow-lg" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                  <>
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    ลงทะเบียน
-                  </>
-                )}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <UserPlus className="w-5 h-5 mr-2" />}
+                ลงทะเบียนสมาชิก
               </Button>
               <Link href="/login" className="w-full">
                 <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary">
@@ -134,7 +141,7 @@ export default function RegisterPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          &copy; 2024 Blue Dragon Construction Co., Ltd. All rights reserved.
+          &copy; 2024 Blue Dragon Construction Co., Ltd.
         </p>
       </div>
     </div>
