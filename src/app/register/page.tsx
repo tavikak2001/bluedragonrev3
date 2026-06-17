@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -31,7 +30,15 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    
+    if (!auth) {
+      toast({
+        variant: "destructive",
+        title: "ระบบไม่พร้อมใช้งาน",
+        description: "ไม่สามารถเชื่อมต่อกับบริการยืนยันตัวตนได้ โปรดตรวจสอบการตั้งค่า Firebase",
+      });
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast({
@@ -51,12 +58,17 @@ export default function RegisterPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
-      console.error(error);
+      console.error('Registration error:', error);
       let errorMessage = "เกิดข้อผิดพลาดในการสมัครสมาชิก";
+      
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = "อีเมลนี้ถูกใช้งานแล้ว";
       } else if (error.code === 'auth/weak-password') {
         errorMessage = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "ระบบยังไม่เปิดให้สมัครด้วยอีเมลและรหัสผ่าน (โปรดเปิดใช้งานใน Firebase Console)";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "รูปแบบอีเมลไม่ถูกต้อง";
       }
       
       toast({
@@ -69,7 +81,13 @@ export default function RegisterPage() {
     }
   };
 
-  if (authLoading) return null;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sarabun">
@@ -127,8 +145,17 @@ export default function RegisterPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full bg-accent h-12 text-lg shadow-lg" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <UserPlus className="w-5 h-5 mr-2" />}
-                ลงทะเบียนสมาชิก
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    กำลังดำเนินการ...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5 mr-2" />
+                    ลงทะเบียนสมาชิก
+                  </>
+                )}
               </Button>
               <Link href="/login" className="w-full">
                 <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary">
