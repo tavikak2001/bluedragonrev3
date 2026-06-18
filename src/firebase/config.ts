@@ -2,16 +2,15 @@
 
 /**
  * @fileOverview Firebase configuration object.
- * ค่าเหล่านี้ควรถูกดึงมาจาก Environment Variables ในไฟล์ .env
- * โปรดตรวจสอบให้แน่ใจว่าได้ระบุค่าที่ถูกต้องใน Firebase Console
+ * ข้อมูลการเชื่อมต่อที่ได้รับจาก Firebase Console
  */
 export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ""
+  apiKey: "AIzaSyCpH7mMRr4vVir-DxfmAvOmo4Ho1GOdusw",
+  authDomain: "studio-1612102279-12835.firebaseapp.com",
+  projectId: "studio-1612102279-12835",
+  storageBucket: "studio-1612102279-12835.firebasestorage.app",
+  messagingSenderId: "660938042571",
+  appId: "1:660938042571:web:80c1f5007f3d7e47b27f4e"
 };
 
 /**
