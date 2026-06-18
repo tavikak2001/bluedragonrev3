@@ -35,17 +35,17 @@ export default function RegisterPage() {
     setErrorMsg(null);
     
     if (!auth) {
-      setErrorMsg("ไม่สามารถเชื่อมต่อระบบ Firebase ได้ โปรดตรวจสอบการตั้งค่า Config");
+      setErrorMsg("ระบบ Firebase ยังไม่พร้อมใช้งาน");
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("รหัสผ่านไม่ตรงกัน โปรดตรวจสอบอีกครั้ง");
+      setErrorMsg("รหัสผ่านไม่ตรงกัน");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+      setErrorMsg("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
       return;
     }
     
@@ -53,145 +53,86 @@ export default function RegisterPage() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       toast({
-        title: "ลงทะเบียนสำเร็จ",
-        description: "ยินดีต้อนรับสู่ระบบ Blue Dragon",
+        title: "สำเร็จ",
+        description: "ลงทะเบียนสมาชิกใหม่เรียบร้อยแล้ว",
       });
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);
-      let message = "";
+      let message = "เกิดข้อผิดพลาดในการลงทะเบียน";
       
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          message = "อีเมลนี้ถูกใช้งานแล้วในระบบ";
-          break;
-        case 'auth/invalid-email':
-          message = "รูปแบบอีเมลไม่ถูกต้อง";
-          break;
-        case 'auth/weak-password':
-          message = "รหัสผ่านไม่ปลอดภัยพอ (ต้องมีอย่างน้อย 6 ตัวอักษร)";
-          break;
-        case 'auth/operation-not-allowed':
-          message = "ระบบลงทะเบียนด้วยอีเมลยังไม่ถูกเปิดใช้งานใน Firebase Console";
-          break;
-        case 'auth/network-request-failed':
-          message = "การเชื่อมต่อเครือข่ายล้มเหลว โปรดตรวจสอบอินเทอร์เน็ต";
-          break;
-        case 'auth/internal-error':
-          message = "เกิดข้อผิดพลาดภายในระบบ Firebase";
-          break;
-        default:
-          message = `เกิดข้อผิดพลาด: ${error.message} (${error.code})`;
+      if (error.code === 'auth/email-already-in-use') {
+        message = "อีเมลนี้มีอยู่ในระบบแล้ว";
+      } else if (error.code === 'auth/invalid-email') {
+        message = "รูปแบบอีเมลไม่ถูกต้อง";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        message = "ระบบยังไม่เปิดให้สมัครด้วยอีเมล (โปรดเปิดใช้งาน Email/Password ใน Firebase Console)";
+      } else if (error.code === 'auth/api-key-not-valid') {
+        message = "API Key ของ Firebase ไม่ถูกต้อง โปรดตรวจสอบการตั้งค่า";
       }
       
       setErrorMsg(message);
-      toast({
-        variant: "destructive",
-        title: "ลงทะเบียนไม่สำเร็จ",
-        description: message,
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-10 h-10 animate-spin text-accent" />
-      </div>
-    );
-  }
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <Loader2 className="w-10 h-10 animate-spin text-accent" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sarabun">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center font-bold text-white shadow-xl rotate-3 mx-auto mb-4 text-2xl">
-            BD
-          </div>
+        <div className="text-center">
+          <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center font-bold text-white shadow-xl rotate-3 mx-auto mb-4 text-2xl">BD</div>
           <h1 className="text-3xl font-bold text-primary">Blue Dragon</h1>
-          <p className="text-muted-foreground">ลงทะเบียนเพื่อจัดการข้อมูลพนักงาน</p>
+          <p className="text-muted-foreground">สร้างบัญชีผู้ใช้งานใหม่</p>
         </div>
 
-        <Card className="border-none shadow-2xl overflow-hidden">
-          <CardHeader className="space-y-1 bg-white border-b">
-            <CardTitle className="text-2xl text-center">สมัครสมาชิกใหม่</CardTitle>
-            <CardDescription className="text-center">
-              กรอกข้อมูลด้านล่างเพื่อสร้างบัญชี
-            </CardDescription>
+        <Card className="border-none shadow-2xl">
+          <CardHeader className="bg-white border-b">
+            <CardTitle className="text-xl text-center">ลงทะเบียน</CardTitle>
+            <CardDescription className="text-center">กรอกข้อมูลเพื่อเริ่มต้นใช้งานระบบ</CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
             <CardContent className="space-y-4 pt-6">
               {errorMsg && (
-                <Alert variant="destructive" className="bg-destructive/10">
+                <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>พบข้อผิดพลาด</AlertTitle>
-                  <AlertDescription className="font-medium">{errorMsg}</AlertDescription>
+                  <AlertDescription>{errorMsg}</AlertDescription>
                 </Alert>
               )}
               
               <div className="space-y-2">
                 <Label htmlFor="email">อีเมล</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="name@company.com" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required 
-                />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">รหัสผ่าน</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="กำหนดรหัสผ่าน (6 ตัวขึ้นไป)"
-                  required 
-                />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</Label>
-                <Input 
-                  id="confirmPassword" 
-                  type="password" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="กรอกรหัสผ่านอีกครั้ง"
-                  required 
-                />
+                <Label htmlFor="confirmPassword">ยืนยันรหัสผ่านอีกครั้ง</Label>
+                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full bg-accent h-12 text-lg shadow-lg hover:bg-accent/90" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    กำลังสร้างบัญชี...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    ยืนยันลงทะเบียน
-                  </>
-                )}
+              <Button type="submit" className="w-full bg-accent h-12 shadow-lg" disabled={loading}>
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <UserPlus className="w-5 h-5 mr-2" />}
+                ยืนยันลงทะเบียน
               </Button>
               <Link href="/login" className="w-full text-center">
-                <Button variant="ghost" className="text-muted-foreground hover:text-primary">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  ย้อนกลับไปหน้าเข้าสู่ระบบ
+                <Button variant="ghost" className="text-muted-foreground">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> ย้อนกลับไปหน้าล็อกอิน
                 </Button>
               </Link>
             </CardFooter>
           </form>
         </Card>
-
-        <p className="text-center text-xs text-muted-foreground">
-          &copy; 2024 Blue Dragon Construction Co., Ltd.
-        </p>
       </div>
     </div>
   );
